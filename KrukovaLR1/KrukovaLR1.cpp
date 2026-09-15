@@ -1,9 +1,12 @@
 ﻿
 
-#include <iostream>
+#include <iostream>г
+using namespace std;
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    cout << "Pipeline Transport System" << endl;
+    cout << "Program started." << endl;
+    return 0;
 }
 
