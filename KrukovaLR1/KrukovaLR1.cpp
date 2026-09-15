@@ -1,12 +1,19 @@
 ﻿
-
-#include <iostream>г
+#include <iostream>
+#include <string>
 using namespace std;
+
+struct Pipe
+{
+    string name;
+    double length;
+    int diameter;
+    bool repair;
+};
 
 int main()
 {
     cout << "Pipeline Transport System" << endl;
-    cout << "Program started." << endl;
     return 0;
 }
 
