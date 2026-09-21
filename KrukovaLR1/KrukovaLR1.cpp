@@ -1,6 +1,7 @@
 ﻿
 #include <iostream>
 #include <string>
+#include <windows.h>
 using namespace std;
 
 struct Pipe
@@ -9,21 +10,28 @@ struct Pipe
     double length;
     int diameter;
     bool repair;
+    bool exists;
 };
 void Add_Pipe(Pipe& p)
 {
-    cout << "Enter pipe name: ";
+    cout << "\nДобавление трубы" << endl;
+    cout << "Введите название трубы: ";
     cin >> p.name;
-    cout << "Enter pipe length (km): ";
+    cout << "Введите длину трубы (км): ";
     cin >> p.length;
-    cout << "Enter pipe diameter (mm): ";
+    cout << "Введите диаметр трубы (мм): ";
     cin >> p.diameter;
     p.repair = false;
+    p.exists = true;
+    cout << "Труба добавлена." << endl;
 }
 
 int main()
 {
-    Pipe p;
+    SetConsoleCP(CP_UTF8);
+    SetConsoleOutputCP(CP_UTF8);
+
+    Pipe p{};
     Add_Pipe(p);
     return 0;
 }
