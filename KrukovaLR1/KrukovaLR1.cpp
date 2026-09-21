@@ -27,7 +27,11 @@ void Add_Pipe(Pipe& p)
     cout << "Труба добавлена." << endl;
 }
 void Show_Pipe(Pipe p)
-{
+{   if (!p.exists)
+    {
+        cout << "Труба еще не добавлена." << endl;
+        return;
+    }
     cout << "\nТруба: " << endl;
     cout << "Название: " << p.name << endl;
     cout << "Длина: " << p.length << " км" << endl;
