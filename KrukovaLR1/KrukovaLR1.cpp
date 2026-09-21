@@ -74,6 +74,20 @@ void Show_Pipe(Pipe p)
         cout << "В ремонте: нет" << endl;
     }
 }
+void Show_CS(CS k)
+{
+    if (!k.exists)
+    {
+        cout << "КС ещё не добавлена." << endl;
+        return;
+    }
+
+    cout << "\nКомпрессорная станция:" << endl;
+    cout << "Название: " << k.name << endl;
+    cout << "Количество цехов: " << k.workshops << endl;
+    cout << "Количество работающих цехов: " << k.workshops_work << endl;
+    cout << "Класс станции: " << k.class_cs << endl;
+}
 
 int main()
 {
@@ -85,6 +99,7 @@ int main()
     Add_Pipe(p);
     Show_Pipe(p);
     Add_CS(k);
+    Show_CS(k);
     return 0;
 }
 
