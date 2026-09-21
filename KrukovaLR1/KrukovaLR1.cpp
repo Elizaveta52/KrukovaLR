@@ -131,6 +131,55 @@ void Edit_Pipe(Pipe& p)
     }
 }
 
+void Edit_CS(CS& k)
+{
+    if (!k.exists)
+    {
+        cout << "Сначала добавьте КС." << endl;
+        return;
+    }
+
+    cout << "\nКС: " << k.name << endl;
+    cout << "Всего цехов: " << k.workshops << endl;
+    cout << "Работает: " << k.workshops_work << endl;
+
+    cout << "1. Запустить цех" << endl;
+    cout << "2. Остановить цех" << endl;
+    cout << "Выберите действие: ";
+
+    int choice;
+    cin >> choice;
+
+    if (choice == 1)
+    {
+        if (k.workshops_work < k.workshops)
+        {
+            k.workshops_work++;
+            cout << "Цех запущен." << endl;
+        }
+        else
+        {
+            cout << "Все цеха уже работают." << endl;
+        }
+    }
+    else if (choice == 2)
+    {
+        if (k.workshops_work > 0)
+        {
+            k.workshops_work--;
+            cout << "Цех остановлен." << endl;
+        }
+        else
+        {
+            cout << "Нет работающих цехов." << endl;
+        }
+    }
+    else
+    {
+        cout << "Неверный выбор." << endl;
+    }
+}
+
 int main()
 {
     SetConsoleCP(CP_UTF8);
