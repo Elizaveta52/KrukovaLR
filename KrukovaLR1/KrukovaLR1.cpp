@@ -10,6 +10,7 @@ struct Pipe
     double length;
     int diameter;
     bool repair;
+    bool exists;
 };
 struct CS
 {
@@ -17,6 +18,7 @@ struct CS
     int workshops;
     int workshops_work;
     int class_cs;
+    bool exists;
 };
 
 void Show_Menu()
@@ -46,6 +48,7 @@ void Add_Pipe(Pipe& p)
     cin >> p.diameter;
 
     p.repair = false;
+	p.exists = true;
     cout << "Труба добавлена." << endl;
 }
 void Add_CS(CS& k)
@@ -61,12 +64,17 @@ void Add_CS(CS& k)
 
     cout << "Введите класс станции: ";
     cin >> k.class_cs;
-
+    k.exists = true;
 
     cout << "КС добавлена." << endl;
 }
 void Show_Pipe(Pipe p)
 {   
+    if (!p.exists)
+    {
+        cout << "Труба ещё не добавлена." << endl;
+        return;
+    }
     cout << "\nТруба: " << endl;
     cout << "Название: " << p.name << endl;
     cout << "Длина: " << p.length << " км" << endl;
@@ -82,12 +90,45 @@ void Show_Pipe(Pipe p)
 }
 void Show_CS(CS k)
 {
-    
+    if (!k.exists)
+    {
+        cout << "КС ещё не добавлена." << endl;
+        return;
+    }
     cout << "\nКомпрессорная станция:" << endl;
     cout << "Название: " << k.name << endl;
     cout << "Количество цехов: " << k.workshops << endl;
     cout << "Количество работающих цехов: " << k.workshops_work << endl;
     cout << "Класс станции: " << k.class_cs << endl;
+}
+void Edit_Pipe(Pipe& p)
+{
+    if (!p.exists)
+    {
+        cout << "Сначала добавьте трубу." << endl;
+        return;
+    }
+    cout << "\nТруба: " << p.name << endl;
+    cout << "1. Отправить трубу в ремонт" << endl;
+    cout << "2. Убрать трубу из ремонта" << endl;
+    cout << "Выберите действие: ";
+
+    int choice;
+    cin >> choice;
+    if (choice == 1)
+    {
+        p.repair = true;
+        cout << "Труба отправлена в ремонт." << endl;
+    }
+    else if (choice == 2)
+    {
+        p.repair = false;
+        cout << "Труба выведена из ремонта." << endl;
+    }
+    else
+    {
+        cout << "Неверный выбор." << endl;
+    }
 }
 
 int main()
@@ -118,6 +159,9 @@ int main()
         case 3:
             Show_Pipe(p);
             Show_CS(k);
+            break;
+        case 4:
+            Edit_Pipe(p);
             break;
 
         case 0:
