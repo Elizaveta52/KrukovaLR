@@ -12,6 +12,7 @@ struct Pipe
     bool repair;
     bool exists;
 };
+
 void Add_Pipe(Pipe& p)
 {
     cout << "\nДобавление трубы" << endl;
@@ -25,6 +26,21 @@ void Add_Pipe(Pipe& p)
     p.exists = true;
     cout << "Труба добавлена." << endl;
 }
+void Show_Pipe(Pipe p)
+{
+    cout << "\nТруба: " << endl;
+    cout << "Название: " << p.name << endl;
+    cout << "Длина: " << p.length << " км" << endl;
+    cout << "Диаметр: " << p.diameter << " мм" << endl;
+    if (p.repair)
+    {
+        cout << "В ремонте: да" << endl;
+    }
+    else
+    {
+        cout << "В ремонте: нет" << endl;
+    }
+}
 
 int main()
 {
@@ -33,6 +49,7 @@ int main()
 
     Pipe p{};
     Add_Pipe(p);
+    Show_Pipe(p);
     return 0;
 }
 
