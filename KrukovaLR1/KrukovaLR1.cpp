@@ -12,6 +12,14 @@ struct Pipe
     bool repair;
     bool exists;
 };
+struct CS
+{
+    string name;
+    int workshops;
+    int workshops_work;
+    int class_cs;
+    bool exists;
+};
 
 void Add_Pipe(Pipe& p)
 {
@@ -52,6 +60,7 @@ int main()
     SetConsoleOutputCP(CP_UTF8);
 
     Pipe p{};
+    CS k{};
     Add_Pipe(p);
     Show_Pipe(p);
     return 0;
