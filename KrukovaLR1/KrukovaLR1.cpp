@@ -26,13 +26,34 @@ void Add_Pipe(Pipe& p)
     cout << "\nДобавление трубы" << endl;
     cout << "Введите название трубы: ";
     cin >> p.name;
+
     cout << "Введите длину трубы (км): ";
     cin >> p.length;
+
     cout << "Введите диаметр трубы (мм): ";
     cin >> p.diameter;
+
     p.repair = false;
     p.exists = true;
     cout << "Труба добавлена." << endl;
+}
+void Add_CS(CS& k)
+{
+    cout << "\nДобавление компрессорной станции" << endl;
+    cout << "Введите название КС: ";
+    cin >> k.name;
+
+    cout << "Введите количество цехов: ";
+    cin >> k.workshops;
+
+    k.workshops_work = k.workshops;
+
+    cout << "Введите класс станции: ";
+    cin >> k.class_cs;
+
+    k.exists = true;
+
+    cout << "КС добавлена." << endl;
 }
 void Show_Pipe(Pipe p)
 {   if (!p.exists)
@@ -63,6 +84,7 @@ int main()
     CS k{};
     Add_Pipe(p);
     Show_Pipe(p);
+    Add_CS(k);
     return 0;
 }
 
