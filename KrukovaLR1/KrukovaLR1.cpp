@@ -37,15 +37,38 @@ void Show_Menu()
 int ReadInt()
 {
     int value;
-
-    while (!(cin >> value))
+    while (true)
     {
-        cout << "Введите целое число: ";
+        if (cin >> value)
+        {
+            if (cin.peek() == '\n')
+            {
+                return value;
+            }
+        }
         cin.clear();
         cin.ignore(1000, '\n');
+        cout << "Ошибка. Введите целое число ещё раз: ";
     }
+}
 
-    return value;
+double ReadDouble()
+{
+    double value;
+    while (true)
+    {
+        if (cin >> value)
+        {
+            if (cin.peek() == '\n')
+            {
+                return value;
+            }
+        }
+
+        cin.clear();
+        cin.ignore(1000, '\n');
+        cout << "Ошибка. Введите число ещё раз: ";
+    }
 }
 
 void Add_Pipe(Pipe& p)
@@ -55,7 +78,7 @@ void Add_Pipe(Pipe& p)
     cin >> p.name;
 
     cout << "Введите длину трубы (км): ";
-    cin >> p.length;
+    p.length = ReadDouble();
 
     cout << "Введите диаметр трубы (мм): ";
     p.diameter = ReadInt();
