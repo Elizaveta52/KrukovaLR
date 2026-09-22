@@ -1,6 +1,7 @@
 ﻿
 #include <iostream>
 #include <string>
+#include <fstream>
 #include <windows.h>
 using namespace std;
 
@@ -79,9 +80,20 @@ void Add_Pipe(Pipe& p)
 
     cout << "Введите длину трубы (км): ";
     p.length = ReadDouble();
+    while (p.length <= 0)
+    {
+        cout << "Длина должна быть больше 0: ";
+        p.length = ReadDouble();
+    }
 
     cout << "Введите диаметр трубы (мм): ";
     p.diameter = ReadInt();
+    while (p.diameter <= 0)
+    {
+        cout << "Диаметр должен быть больше 0: ";
+        p.diameter = ReadInt();
+    }
+
 
     p.repair = false;
 	p.exists = true;
@@ -95,11 +107,21 @@ void Add_CS(CS& k)
 
     cout << "Введите количество цехов: ";
     k.workshops = ReadInt();
+    while (k.workshops <= 0)
+    {
+        cout << "Количество цехов должно быть больше 0: ";
+        k.workshops = ReadInt();
+    }
 
     k.workshops_work = k.workshops;
 
     cout << "Введите класс станции: ";
     k.class_cs = ReadInt();
+    while (k.class_cs <= 0)
+    {
+        cout << "Класс станции должен быть больше 0: ";
+        k.class_cs = ReadInt();
+    }
     k.exists = true;
 
     cout << "КС добавлена." << endl;
