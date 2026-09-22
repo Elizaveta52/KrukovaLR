@@ -34,6 +34,19 @@ void Show_Menu()
     cout << "0. Выход" << endl;
     cout << "Выберите действие: ";
 }
+int ReadInt()
+{
+    int value;
+
+    while (!(cin >> value))
+    {
+        cout << "Введите целое число: ";
+        cin.clear();
+        cin.ignore(1000, '\n');
+    }
+
+    return value;
+}
 
 void Add_Pipe(Pipe& p)
 {
@@ -45,7 +58,7 @@ void Add_Pipe(Pipe& p)
     cin >> p.length;
 
     cout << "Введите диаметр трубы (мм): ";
-    cin >> p.diameter;
+    p.diameter = ReadInt();
 
     p.repair = false;
 	p.exists = true;
@@ -58,12 +71,12 @@ void Add_CS(CS& k)
     cin >> k.name;
 
     cout << "Введите количество цехов: ";
-    cin >> k.workshops;
+    k.workshops = ReadInt();
 
     k.workshops_work = k.workshops;
 
     cout << "Введите класс станции: ";
-    cin >> k.class_cs;
+    k.class_cs = ReadInt();
     k.exists = true;
 
     cout << "КС добавлена." << endl;
@@ -114,7 +127,7 @@ void Edit_Pipe(Pipe& p)
     cout << "Выберите действие: ";
 
     int choice;
-    cin >> choice;
+    choice = ReadInt();
     if (choice == 1)
     {
         p.repair = true;
@@ -148,7 +161,7 @@ void Edit_CS(CS& k)
     cout << "Выберите действие: ";
 
     int choice;
-    cin >> choice;
+    choice = ReadInt();
 
     if (choice == 1)
     {
@@ -194,7 +207,7 @@ int main()
     {
         Show_Menu();
 
-        cin >> choice;
+        choice = ReadInt();
 
         switch (choice)
         {
@@ -212,6 +225,9 @@ int main()
             break;
         case 4:
             Edit_Pipe(p);
+            break;
+        case 5:
+            Edit_CS(k);
             break;
 
         case 0:
