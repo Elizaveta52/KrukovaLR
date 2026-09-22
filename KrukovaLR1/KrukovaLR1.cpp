@@ -251,6 +251,7 @@ void Save_File(Pipe p, CS k, string filename)
     }
 
     fout << "ТРУБА" << endl;
+    fout << "Существует: " << p.exists << endl;
 
     if (p.exists)
     {
@@ -259,14 +260,11 @@ void Save_File(Pipe p, CS k, string filename)
         fout << "Диаметр трубы (мм): " << p.diameter << endl;
         fout << "В ремонте: " << p.repair << endl;
     }
-    else
-    {
-        fout << "Труба не добавлена." << endl;
-    }
 
     fout << endl;
 
     fout << "КОМПРЕССОРНАЯ СТАНЦИЯ" << endl;
+    fout << "Существует: " << k.exists << endl;
 
     if (k.exists)
     {
@@ -275,16 +273,81 @@ void Save_File(Pipe p, CS k, string filename)
         fout << "Количество работающих цехов: " << k.workshops_work << endl;
         fout << "Класс станции: " << k.class_cs << endl;
     }
-    else
-    {
-        fout << "КС не добавлена." << endl;
-    }
 
     fout.close();
 
     cout << "Данные сохранены в файл: " << filename << endl;
 }
+void Load_File(Pipe& p, CS& k, string filename)
+{
+    ifstream fin;
 
+    fin.open(filename);
+
+    if (!fin.is_open())
+    {
+        cout << "Ошибка открытия файла." << endl;
+        return;
+    }
+
+    string line;
+    string value;
+
+    getline(fin, line);
+    getline(fin, line);
+
+    value = line.substr(line.find(":") + 2);
+    p.exists = stoi(value);
+
+    if (p.exists)
+    {
+        getline(fin, line);
+        value = line.substr(line.find(":") + 2);
+        p.name = value;
+
+        getline(fin, line);
+        value = line.substr(line.find(":") + 2);
+        p.length = stod(value);
+
+        getline(fin, line);
+        value = line.substr(line.find(":") + 2);
+        p.diameter = stoi(value);
+
+        getline(fin, line);
+        value = line.substr(line.find(":") + 2);
+        p.repair = stoi(value);
+    }
+
+    getline(fin, line);
+    getline(fin, line);
+    getline(fin, line);
+
+    value = line.substr(line.find(":") + 2);
+    k.exists = stoi(value);
+
+    if (k.exists)
+    {
+        getline(fin, line);
+        value = line.substr(line.find(":") + 2);
+        k.name = value;
+
+        getline(fin, line);
+        value = line.substr(line.find(":") + 2);
+        k.workshops = stoi(value);
+
+        getline(fin, line);
+        value = line.substr(line.find(":") + 2);
+        k.workshops_work = stoi(value);
+
+        getline(fin, line);
+        value = line.substr(line.find(":") + 2);
+        k.class_cs = stoi(value);
+    }
+
+    fin.close();
+
+    cout << "Данные загружены." << endl;
+}
 int main()
 {
     SetConsoleCP(CP_UTF8);
@@ -327,6 +390,11 @@ int main()
             cout << "Введите имя файла: ";
             cin >> filename;
             Save_File(p, k, filename);
+            break;
+        case 7:
+            cout << "Введите имя файла: ";
+            cin >> filename;
+            Load_File(p, k, filename);
             break;
 
         case 0:
