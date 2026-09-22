@@ -238,6 +238,52 @@ void Edit_CS(CS& k)
     }
 }
 
+void Save_File(Pipe p, CS k, string filename)
+{
+    ofstream fout;
+
+    fout.open(filename);
+
+    if (!fout.is_open())
+    {
+        cout << "Ошибка открытия файла." << endl;
+        return;
+    }
+
+    fout << "ТРУБА" << endl;
+
+    if (p.exists)
+    {
+        fout << "Название: " << p.name << endl;
+        fout << "Длина трубы (км): " << p.length << endl;
+        fout << "Диаметр трубы (мм): " << p.diameter << endl;
+        fout << "В ремонте: " << p.repair << endl;
+    }
+    else
+    {
+        fout << "Труба не добавлена." << endl;
+    }
+
+    fout << endl;
+
+    fout << "КОМПРЕССОРНАЯ СТАНЦИЯ" << endl;
+
+    if (k.exists)
+    {
+        fout << "Название: " << k.name << endl;
+        fout << "Количество цехов: " << k.workshops << endl;
+        fout << "Количество работающих цехов: " << k.workshops_work << endl;
+        fout << "Класс станции: " << k.class_cs << endl;
+    }
+    else
+    {
+        fout << "КС не добавлена." << endl;
+    }
+
+    fout.close();
+
+    cout << "Данные сохранены в файл: " << filename << endl;
+}
 
 int main()
 {
@@ -247,6 +293,9 @@ int main()
     Pipe p{};
     CS k{};
     int choice;
+    string filename;
+    p.exists = false;
+    k.exists = false;
 
     while (true)
     {
@@ -273,6 +322,11 @@ int main()
             break;
         case 5:
             Edit_CS(k);
+            break;
+        case 6:
+            cout << "Введите имя файла: ";
+            cin >> filename;
+            Save_File(p, k, filename);
             break;
 
         case 0:
