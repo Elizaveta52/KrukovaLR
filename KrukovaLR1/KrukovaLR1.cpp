@@ -52,7 +52,14 @@ int ReadInt()
         cout << "Ошибка. Введите целое число ещё раз: ";
     }
 }
+string ReadName()
+{
+    string name;
 
+    getline(cin >> ws, name);
+
+    return name;
+}
 double ReadDouble()
 {
     double value;
@@ -76,7 +83,7 @@ void Add_Pipe(Pipe& p)
 {
     cout << "\nДобавление трубы" << endl;
     cout << "Введите название трубы: ";
-    cin >> p.name;
+    p.name = ReadName();
 
     cout << "Введите длину трубы (км): ";
     p.length = ReadDouble();
@@ -116,7 +123,7 @@ void Add_CS(CS& k)
 {
     cout << "\nДобавление компрессорной станции" << endl;
     cout << "Введите название КС: ";
-    cin >> k.name;
+    k.name = ReadName();
 
     cout << "Введите количество цехов: ";
     k.workshops = ReadInt();
