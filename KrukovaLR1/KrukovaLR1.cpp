@@ -94,8 +94,21 @@ void Add_Pipe(Pipe& p)
         p.diameter = ReadInt();
     }
 
+    cout << "Введите состояние трубы:" << endl;
+    cout << "1. В ремонте" << endl;
+    cout << "0. Не в ремонте" << endl;
+    cout << "Ваш выбор: ";
 
-    p.repair = false;
+    int state;
+    state = ReadInt();
+
+    while (state != 0 && state != 1)
+    {
+        cout << "Введите 0 или 1: ";
+        state = ReadInt();
+    }
+
+    p.repair = state;
 	p.exists = true;
     cout << "Труба добавлена." << endl;
 }
@@ -113,7 +126,14 @@ void Add_CS(CS& k)
         k.workshops = ReadInt();
     }
 
-    k.workshops_work = k.workshops;
+    cout << "Введите количество работающих цехов: ";
+    k.workshops_work = ReadInt();
+
+    while (k.workshops_work < 0 || k.workshops_work > k.workshops)
+    {
+        cout << "Количество работающих цехов должно быть от 0 до " << k.workshops << ": ";
+        k.workshops_work = ReadInt();
+    }
 
     cout << "Введите класс станции: ";
     k.class_cs = ReadInt();
@@ -167,6 +187,14 @@ void Edit_Pipe(Pipe& p)
         return;
     }
     cout << "\nТруба: " << p.name << endl;
+    if (p.repair)
+    {
+        cout << "Текущее состояние: в ремонте" << endl;
+    }
+    else
+    {
+        cout << "Текущее состояние: не в ремонте" << endl;
+    }
     cout << "1. Отправить трубу в ремонт" << endl;
     cout << "2. Убрать трубу из ремонта" << endl;
     cout << "Выберите действие: ";
@@ -175,13 +203,27 @@ void Edit_Pipe(Pipe& p)
     choice = ReadInt();
     if (choice == 1)
     {
-        p.repair = true;
-        cout << "Труба отправлена в ремонт." << endl;
+        if (p.repair)
+        {
+            cout << "Труба уже находится в ремонте." << endl;
+        }
+        else
+        {
+            p.repair = true;
+            cout << "Труба отправлена в ремонт." << endl;
+        }
     }
     else if (choice == 2)
     {
-        p.repair = false;
-        cout << "Труба выведена из ремонта." << endl;
+        if (!p.repair)
+        {
+            cout << "Труба не находится в ремонте." << endl;
+        }
+        else
+        {
+            p.repair = false;
+            cout << "Труба выведена из ремонта." << endl;
+        }
     }
     else
     {
@@ -214,6 +256,8 @@ void Edit_CS(CS& k)
         {
             k.workshops_work++;
             cout << "Цех запущен." << endl;
+            cout << "Теперь работает цехов: "
+                << k.workshops_work << endl;
         }
         else
         {
@@ -226,6 +270,8 @@ void Edit_CS(CS& k)
         {
             k.workshops_work--;
             cout << "Цех остановлен." << endl;
+            cout << "Теперь работает цехов: "
+                << k.workshops_work << endl;
         }
         else
         {
@@ -241,7 +287,6 @@ void Edit_CS(CS& k)
 void Save_File(Pipe p, CS k, string filename)
 {
     ofstream fout;
-
     fout.open(filename);
 
     if (!fout.is_open())
@@ -260,7 +305,6 @@ void Save_File(Pipe p, CS k, string filename)
         fout << "Диаметр трубы (мм): " << p.diameter << endl;
         fout << "В ремонте: " << p.repair << endl;
     }
-
     fout << endl;
 
     fout << "КОМПРЕССОРНАЯ СТАНЦИЯ" << endl;
@@ -272,6 +316,12 @@ void Save_File(Pipe p, CS k, string filename)
         fout << "Количество цехов: " << k.workshops << endl;
         fout << "Количество работающих цехов: " << k.workshops_work << endl;
         fout << "Класс станции: " << k.class_cs << endl;
+    }
+        if (!fout)
+    {
+        cout << "Ошибка при записи данных в файл." << endl;
+        fout.close();
+        return;
     }
 
     fout.close();
@@ -396,10 +446,13 @@ int main()
             cin >> filename;
             Load_File(p, k, filename);
             break;
-
-
         case 0:
+            cout << "Программа завершена." << endl;
             return 0;
+        default:
+            cout << "Такого пункта меню нет. Выберите действие от 0 до 7."
+                << endl;
+            break;
         }
     }
 }

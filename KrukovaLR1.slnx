@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="KrukovaLR1/KrukovaLR1.vcxproj" />
+  <Project Path="KrukovaLR1/KrukovaLR1.vcxproj" Id="d29df086-aff2-41e7-b513-f04c8eac1621" />
 </Solution>
