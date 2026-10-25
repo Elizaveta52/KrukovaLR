@@ -580,6 +580,170 @@ void Batch_Pipes(vector<Pipe>& pipes)
     LogAction("Пакетная операция завершена");
 }
 
+bool Read_Label(ifstream& file, const string& expected)
+{
+    string label;
+    return getline(file, label) && label == expected;
+}
+
+bool End_Line(ifstream& file)
+{
+    string rest;
+    if (!getline(file, rest))
+        return false;
+    for (int i = 0; i < (int)rest.size(); i++)
+        if (rest[i] != ' ' && rest[i] != '\t' && rest[i] != '\r')
+            return false;
+    return true;
+}
+
+bool Valid_Name(const string& name)
+{
+    if (name.empty() || name.size() > 200)
+        return false;
+    for (int i = 0; i < (int)name.size(); i++)
+        if (name[i] != ' ' && name[i] != '\t' && name[i] != '\r')
+            return true;
+    return false;
+}
+
+void Save_Pipes(ofstream& file, const vector<Pipe>& pipes)
+{
+    file << "ТРУБЫ\n" << pipes.size() << '\n';
+    for (int i = 0; i < (int)pipes.size(); i++)
+    {
+        const Pipe& p = pipes[i];
+        file << "ID\n" << p.id << "\nНазвание\n" << p.name
+            << "\nДлина (км)\n" << p.length
+            << "\nДиаметр (мм)\n" << p.diameter
+            << "\nВ ремонте\n" << p.repair << '\n';
+    }
+}
+
+void Save_Stations(ofstream& file, const vector<CS>& cs)
+{
+    file << "КС\n" << cs.size() << '\n';
+    for (int i = 0; i < (int)cs.size(); i++)
+    {
+        const CS& k = cs[i];
+        file << "ID\n" << k.id << "\nНазвание\n" << k.name
+            << "\nВсего цехов\n" << k.workshops
+            << "\nРаботающих цехов\n" << k.workshops_work
+            << "\nКласс\n" << k.class_cs << '\n';
+    }
+}
+
+bool Load_Pipes(ifstream& file, vector<Pipe>& pipes, int next)
+{
+    int n;
+    if (!Read_Label(file, "ТРУБЫ") || !(file >> n) || !End_Line(file)
+        || n < 0 || n > MAX_OBJECTS)
+        return false;
+    for (int i = 0; i < n; i++)
+    {
+        Pipe p;
+        int repair;
+        if (!Read_Label(file, "ID") || !(file >> p.id) || !End_Line(file)
+            || !Read_Label(file, "Название") || !getline(file, p.name)
+            || !Read_Label(file, "Длина (км)") || !(file >> p.length) || !End_Line(file)
+            || !Read_Label(file, "Диаметр (мм)") || !(file >> p.diameter) || !End_Line(file)
+            || !Read_Label(file, "В ремонте") || !(file >> repair) || !End_Line(file))
+            return false;
+        if (p.id < 1 || p.id >= next || Find_Pipe_By_ID(pipes, p.id) != -1
+            || !Valid_Name(p.name) || !isfinite(p.length) || p.length <= 0
+            || p.diameter <= 0 || (repair != 0 && repair != 1))
+            return false;
+        p.repair = repair;
+        pipes.push_back(p);
+    }
+    return true;
+}
+
+bool Load_Stations(ifstream& file, vector<CS>& cs,
+    const vector<Pipe>& pipes, int next)
+{
+    int n;
+    if (!Read_Label(file, "КС") || !(file >> n) || !End_Line(file)
+        || n < 0 || n > MAX_OBJECTS)
+        return false;
+    for (int i = 0; i < n; i++)
+    {
+        CS k;
+        if (!Read_Label(file, "ID") || !(file >> k.id) || !End_Line(file)
+            || !Read_Label(file, "Название") || !getline(file, k.name)
+            || !Read_Label(file, "Всего цехов") || !(file >> k.workshops) || !End_Line(file)
+            || !Read_Label(file, "Работающих цехов") || !(file >> k.workshops_work) || !End_Line(file)
+            || !Read_Label(file, "Класс") || !(file >> k.class_cs) || !End_Line(file))
+            return false;
+        if (k.id < 1 || k.id >= next || Find_CS_By_ID(cs, k.id) != -1
+            || Find_Pipe_By_ID(pipes, k.id) != -1 || !Valid_Name(k.name)
+            || k.workshops <= 0 || k.workshops_work < 0
+            || k.workshops_work > k.workshops || k.class_cs <= 0)
+            return false;
+        cs.push_back(k);
+    }
+    return true;
+}
+
+void Save_File(const vector<Pipe>& pipes, const vector<CS>& cs, int next)
+{
+    cout << "\n  СОХРАНЕНИЕ\n" << endl;
+    cout << "Имя файла сохранения: "; LogAction("Имя файла сохранения: "); string name = ReadName();
+    ofstream file(name);
+    if (!file)
+    {
+        cout << "Не удалось открыть файл." << endl;
+        LogAction("Ошибка открытия файла сохранения");
+        return;
+    }
+    file.precision(17);
+    file << "PIPELINE 1\nСледующий ID\n" << next << '\n';
+    Save_Pipes(file, pipes);
+    Save_Stations(file, cs);
+    file.close();
+    if (!file)
+    {
+        cout << "Ошибка записи файла." << endl;
+        LogAction("Ошибка записи файла");
+        return;
+    }
+    cout << "Сохранено." << endl;
+    LogAction("Сохранен файл: " + name);
+}
+
+void Load_File(vector<Pipe>& pipes, vector<CS>& cs, int& next)
+{
+    cout << "\n  ЗАГРУЗКА\n" << endl;
+    cout << "Имя файла загрузки: "; LogAction("Имя файла загрузки: "); string name = ReadName();
+    ifstream file(name);
+    vector<Pipe> np;
+    vector<CS> nc;
+    int nid;
+    if (!file || !Read_Label(file, "PIPELINE 1")
+        || !Read_Label(file, "Следующий ID") || !(file >> nid)
+        || !End_Line(file) || nid < 1
+        || !Load_Pipes(file, np, nid)
+        || !Load_Stations(file, nc, np, nid))
+    {
+        cout << "Файл недоступен или поврежден. Данные сохранены в памяти." << endl;
+        LogAction("Отказ загрузки: " + name);
+        return;
+    }
+    file >> ws;
+    if (!file.eof())
+    {
+        cout << "Лишние данные в конце файла. Загрузка отменена." << endl;
+        LogAction("Лишние данные в файле: " + name);
+        return;
+    }
+    pipes.swap(np);
+    cs.swap(nc);
+    if (nid > next)
+        next = nid;
+    cout << "Данные заменены содержимым файла." << endl;
+    LogAction("Загружен файл: " + name);
+}
+
 void Work_Pipe(vector<Pipe>& pipes)
 {
     while (true)
@@ -651,6 +815,18 @@ void Work_Menu(vector<Pipe>& pipes, vector<CS>& cs)
     }
 }
 
+void File_Menu(vector<Pipe>& pipes, vector<CS>& cs, int& next)
+{
+    cout << "\n  РАБОТА С ФАЙЛАМИ\n" << endl;
+    cout << "\n  1. Сохранить\n  2. Загрузить (заменить текущие объекты)\n  0. Назад\n";
+    switch (ReadRange("Работа с файлами: ", 0, 2))
+    {
+    case 1: Save_File(pipes, cs, next); break;
+    case 2: Load_File(pipes, cs, next); break;
+    case 0: return;
+    }
+}
+
 int main()
 {
     SetConsoleCP(CP_UTF8);
@@ -673,6 +849,7 @@ int main()
         case 2: Add_CS(cs, next); break;
         case 3: Show_All(pipes, cs); break;
         case 4: Work_Menu(pipes, cs); break;
+        case 5: File_Menu(pipes, cs, next); break;
         case 0:
             LogAction("Выход из программы");
             return 0;
