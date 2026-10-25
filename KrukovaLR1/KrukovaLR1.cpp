@@ -4,6 +4,7 @@
 #include <fstream>
 #include <climits>
 #include <cstdlib>
+#include <cmath>
 #include <windows.h>
 
 using namespace std;
@@ -28,52 +29,68 @@ public:
     int workshops = 0;
     int workshops_work = 0;
     int class_cs = 0;
+
+    double IdlePercent() const
+    {
+        return 100.0 * (workshops - workshops_work) / workshops;
+    }
 };
 
-void LogAction(string action)
+void LogAction(const string& action)
 {
     ofstream log("actions.log", ios::app);
-
     if (!log.is_open())
     {
         cout << "Ошибка открытия журнала действий." << endl;
         return;
     }
-
     SYSTEMTIME t;
     GetLocalTime(&t);
-
     log << t.wDay << "." << t.wMonth << "." << t.wYear
         << " " << t.wHour << ":" << t.wMinute << ":" << t.wSecond
         << " | " << action << endl;
-
     if (!log)
         cout << "Ошибка записи журнала действий." << endl;
 }
 
+bool EndInput()
+{
+    string rest;
+    getline(cin, rest);
+    LogAction("Остаток ввода: " + rest);
+    for (int i = 0; i < (int)rest.size(); i++)
+        if (rest[i] != ' ' && rest[i] != '\t' && rest[i] != '\r')
+            return false;
+    return true;
+}
+
 int ReadInt()
 {
-    int value;
-
+    int x;
     while (true)
     {
-        if (cin >> value)
+        if (cin >> x)
         {
-            if (cin.peek() == '\n')
-            {
-                return value;
-            }
+            LogAction("Введено целое число: " + to_string(x));
+            if (EndInput())
+                return x;
         }
-
+        else
+        {
+            if (cin.eof())
+            {
+                LogAction("Завершение ввода");
+                exit(0);
+            }
+            cin.clear();
+            LogAction("Ошибка чтения числа");
+            cin.ignore(INT_MAX, '\n');
+        }
         if (cin.eof())
         {
             LogAction("Завершение ввода");
             exit(0);
         }
-
-        cin.clear();
-        cin.ignore(1000, '\n');
-
         cout << "Ошибка. Введите целое число ещё раз: ";
         LogAction("Ошибка ввода целого числа");
     }
@@ -81,36 +98,40 @@ int ReadInt()
 
 double ReadDouble()
 {
-    double value;
-
+    double x;
     while (true)
     {
-        if (cin >> value)
+        if (cin >> x)
         {
-            if (cin.peek() == '\n')
-            {
-                return value;
-            }
+            LogAction("Введено число: " + to_string(x));
+            bool ok = EndInput();
+            if (ok && isfinite(x))
+                return x;
         }
-
+        else
+        {
+            if (cin.eof())
+            {
+                LogAction("Завершение ввода");
+                exit(0);
+            }
+            cin.clear();
+            LogAction("Ошибка чтения числа");
+            cin.ignore(INT_MAX, '\n');
+        }
         if (cin.eof())
         {
             LogAction("Завершение ввода");
             exit(0);
         }
-
-        cin.clear();
-        cin.ignore(1000, '\n');
-
         cout << "Ошибка. Введите число ещё раз: ";
-        LogAction("Ошибка ввода вещественного числа");
+        LogAction("Ошибка ввода числа");
     }
 }
 
 string ReadName()
 {
     string name;
-
     while (true)
     {
         if (!getline(cin >> ws, name))
@@ -118,62 +139,62 @@ string ReadName()
             LogAction("Завершение ввода");
             exit(0);
         }
-
+        LogAction("Введена строка: " + name);
         if (!name.empty() && name.size() <= 200)
             return name;
-
-        cout << "Введите название длиной от 1 до 200 символов: ";
+        cout << "Введите название длиной от 1 до 200 байт: ";
         LogAction("Ошибка ввода названия");
     }
 }
 
 int ReadPositiveInt()
 {
-    int value = ReadInt();
-
-    while (value <= 0)
+    int x = ReadInt();
+    while (x <= 0)
     {
         cout << "Введите число больше 0: ";
-        value = ReadInt();
+        LogAction("Ожидалось положительное целое число");
+        x = ReadInt();
     }
-
-    return value;
+    return x;
 }
 
 double ReadPositiveDouble()
 {
-    double value = ReadDouble();
-
-    while (value <= 0)
+    double x = ReadDouble();
+    while (x <= 0)
     {
         cout << "Введите число больше 0: ";
-        value = ReadDouble();
+        LogAction("Недопустимая длина трубы");
+        x = ReadDouble();
     }
-
-    return value;
+    return x;
 }
 
 int Read01()
 {
-    int value = ReadInt();
-
-    while (value != 0 && value != 1)
+    int x = ReadInt();
+    while (x != 0 && x != 1)
     {
         cout << "Введите 0 или 1: ";
-        value = ReadInt();
+        LogAction("Ожидалось 0 или 1");
+        x = ReadInt();
     }
-
-    return value;
+    return x;
 }
 
-void Show_Menu()
+int ReadRange(const string& text, int lo, int hi)
 {
-    cout << "\nМЕНЮ:" << endl;
-    cout << "1. Добавить трубу" << endl;
-    cout << "2. Добавить КС" << endl;
-    cout << "3. Просмотреть все объекты" << endl;
-    cout << "0. Выход" << endl;
-    cout << "Выберите действие: ";
+    cout << text;
+    LogAction(text);
+    int x = ReadInt();
+    while (x < lo || x > hi)
+    {
+        cout << "Введите число от " << lo << " до " << hi << ": ";
+        LogAction("Число вне диапазона");
+        x = ReadInt();
+    }
+    return x;
 }
 
 void Show_Pipe(const Pipe& p)
@@ -182,7 +203,10 @@ void Show_Pipe(const Pipe& p)
     cout << "Название: " << p.name << endl;
     cout << "Длина: " << p.length << " км" << endl;
     cout << "Диаметр: " << p.diameter << " мм" << endl;
-    cout << "В ремонте: " << (p.repair ? "да" : "нет") << endl;
+    if (p.repair)
+        cout << "В ремонте: да" << endl;
+    else
+        cout << "В ремонте: нет" << endl;
 }
 
 void Show_CS(const CS& k)
@@ -190,157 +214,124 @@ void Show_CS(const CS& k)
     cout << "\nКС ID: " << k.id << endl;
     cout << "Название: " << k.name << endl;
     cout << "Всего цехов: " << k.workshops << endl;
-    cout << "Работающих цехов: " << k.workshops_work << endl;
-    cout << "Класс станции: " << k.class_cs << endl;
-
-    double percent = 100.0 *
-        (k.workshops - k.workshops_work) / k.workshops;
-
-    cout << "Незадействованных цехов: "
-        << percent << "%" << endl;
+    cout << "Работает цехов: " << k.workshops_work << endl;
+    cout << "Класс: " << k.class_cs << endl;
+    cout << "Незадействованных цехов: " << k.IdlePercent() << "%" << endl;
 }
 
-void Add_Pipe(vector<Pipe>& pipes, int& nextId)
+void Show_Pipes(const vector<Pipe>& pipes)
 {
-    if (pipes.size() >= MAX_OBJECTS || nextId == INT_MAX)
-    {
-        cout << "Невозможно добавить трубу: достигнут предел." << endl;
-        LogAction("Отказ в добавлении трубы: достигнут предел");
-        return;
-    }
-
-    Pipe p;
-
-    cout << "\nВведите название трубы: ";
-    p.name = ReadName();
-
-    cout << "Введите длину трубы (км): ";
-    p.length = ReadPositiveDouble();
-
-    cout << "Введите диаметр трубы (мм): ";
-    p.diameter = ReadPositiveInt();
-
-    cout << "В ремонте? (1 - да, 0 - нет): ";
-    p.repair = Read01();
-
-    p.id = nextId;
-    nextId++;
-
-    pipes.push_back(p);
-
-    cout << "Труба добавлена. ID: " << p.id << endl;
-
-    LogAction("Добавлена труба ID=" + to_string(p.id)
-        + ", название=" + p.name);
-}
-
-void Add_CS(vector<CS>& stations, int& nextId)
-{
-    if (stations.size() >= MAX_OBJECTS || nextId == INT_MAX)
-    {
-        cout << "Невозможно добавить КС: достигнут предел." << endl;
-        LogAction("Отказ в добавлении КС: достигнут предел");
-        return;
-    }
-
-    CS k;
-
-    cout << "\nВведите название КС: ";
-    k.name = ReadName();
-
-    cout << "Введите количество цехов: ";
-    k.workshops = ReadPositiveInt();
-
-    cout << "Введите количество работающих цехов: ";
-    k.workshops_work = ReadInt();
-
-    while (k.workshops_work < 0 ||
-        k.workshops_work > k.workshops)
-    {
-        cout << "Введите число от 0 до "
-            << k.workshops << ": ";
-        k.workshops_work = ReadInt();
-    }
-
-    cout << "Введите класс станции: ";
-    k.class_cs = ReadPositiveInt();
-
-    k.id = nextId;
-    nextId++;
-
-    stations.push_back(k);
-
-    cout << "КС добавлена. ID: " << k.id << endl;
-
-    LogAction("Добавлена КС ID=" + to_string(k.id)
-        + ", название=" + k.name);
-}
-
-void Show_All(const vector<Pipe>& pipes,
-    const vector<CS>& stations)
-{
-    cout << "\nСПИСОК ТРУБ:" << endl;
-
+    LogAction("Просмотр труб");
     if (pipes.empty())
         cout << "Труб пока нет." << endl;
-
     for (int i = 0; i < (int)pipes.size(); i++)
         Show_Pipe(pipes[i]);
+}
 
-    cout << "\nСПИСОК КС:" << endl;
-
-    if (stations.empty())
+void Show_Stations(const vector<CS>& cs)
+{
+    LogAction("Просмотр КС");
+    if (cs.empty())
         cout << "КС пока нет." << endl;
+    for (int i = 0; i < (int)cs.size(); i++)
+        Show_CS(cs[i]);
+}
 
-    for (int i = 0; i < (int)stations.size(); i++)
-        Show_CS(stations[i]);
+void Show_All(const vector<Pipe>& pipes, const vector<CS>& cs)
+{
+    Show_Pipes(pipes);
+    Show_Stations(cs);
+}
 
-    LogAction("Просмотр всех объектов");
+void Add_Pipe(vector<Pipe>& pipes, int& next)
+{
+    if (pipes.size() >= MAX_OBJECTS || next == INT_MAX)
+    {
+        cout << "Достигнут предел добавления труб." << endl;
+        LogAction("Отказ добавления трубы: предел");
+        return;
+    }
+    Pipe p;
+    cout << "Название трубы: ";
+    LogAction("Название трубы: ");
+    p.name = ReadName();
+    cout << "Длина трубы (км): ";
+    LogAction("Ввод длины трубы");
+    p.length = ReadPositiveDouble();
+    cout << "Диаметр трубы (мм): ";
+    LogAction("Ввод диаметра трубы");
+    p.diameter = ReadPositiveInt();
+    cout << "В ремонте (1 - да, 0 - нет): ";
+    LogAction("Ввод состояния трубы");
+    p.repair = Read01();
+    p.id = next;
+    pipes.push_back(p);
+    next++;
+    cout << "Добавлена труба ID=" << p.id << endl;
+    LogAction("Добавлена труба ID=" + to_string(p.id));
+}
+
+void Add_CS(vector<CS>& cs, int& next)
+{
+    if (cs.size() >= MAX_OBJECTS || next == INT_MAX)
+    {
+        cout << "Достигнут предел добавления КС." << endl;
+        LogAction("Отказ добавления КС: предел");
+        return;
+    }
+    CS k;
+    cout << "Название КС: ";
+    LogAction("Название КС: ");
+    k.name = ReadName();
+    cout << "Всего цехов: ";
+    LogAction("Ввод количества цехов");
+    k.workshops = ReadPositiveInt();
+    k.workshops_work = ReadRange("Работающих цехов: ", 0, k.workshops);
+    cout << "Класс станции: ";
+    LogAction("Ввод класса станции");
+    k.class_cs = ReadPositiveInt();
+    k.id = next;
+    cs.push_back(k);
+    next++;
+    cout << "Добавлена КС ID=" << k.id << endl;
+    LogAction("Добавлена КС ID=" + to_string(k.id));
+}
+
+void Show_Menu(const vector<Pipe>& pipes, const vector<CS>& cs)
+{
+    cout << "1. Трубы\n2. КС\n3. Все объекты\n0. Назад\n";
+    switch (ReadRange("Просмотреть: ", 0, 3))
+    {
+    case 1: Show_Pipes(pipes); break;
+    case 2: Show_Stations(cs); break;
+    case 3: Show_All(pipes, cs); break;
+    case 0: return;
+    }
 }
 
 int main()
 {
     SetConsoleCP(CP_UTF8);
     SetConsoleOutputCP(CP_UTF8);
-
     vector<Pipe> pipes;
-    vector<CS> stations;
-
-    int nextId = 1;
-    int choice;
-
+    vector<CS> cs;
+    int next = 1;
     LogAction("Запуск программы");
-
     while (true)
     {
-        Show_Menu();
-        choice = ReadInt();
-
-        LogAction("Выбран пункт меню: " + to_string(choice));
-
-        switch (choice)
+        cout << "\n1. Добавить трубу"
+            << "\n2. Добавить КС"
+            << "\n3. Просмотреть объекты"
+            << "\n4. Работа с объектами"
+            << "\n5. Работа с файлами\n0. Выход\n";
+        switch (ReadRange("Главное меню: ", 0, 5))
         {
-        case 1:
-            Add_Pipe(pipes, nextId);
-            break;
-
-        case 2:
-            Add_CS(stations, nextId);
-            break;
-
-        case 3:
-            Show_All(pipes, stations);
-            break;
-
+        case 1: Add_Pipe(pipes, next); break;
+        case 2: Add_CS(cs, next); break;
+        case 3: Show_Menu(pipes, cs); break;
         case 0:
             LogAction("Выход из программы");
-            cout << "Программа завершена." << endl;
             return 0;
-
-        default:
-            cout << "Такого пункта меню нет." << endl;
-            LogAction("Неверный пункт меню");
-            break;
         }
     }
 }
