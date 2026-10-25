@@ -297,6 +297,128 @@ void Add_CS(vector<CS>& cs, int& next)
     LogAction("Добавлена КС ID=" + to_string(k.id));
 }
 
+int Find_Pipe_By_ID(const vector<Pipe>& pipes, int id)
+{
+    for (int i = 0; i < (int)pipes.size(); i++)
+        if (pipes[i].id == id)
+            return i;
+    return -1;
+}
+
+void Delete_Pipe(vector<Pipe>& pipes, int id)
+{
+    int pos = Find_Pipe_By_ID(pipes, id);
+    if (pos == -1)
+    {
+        cout << "Объект не найден." << endl;
+        LogAction("Не найден Pipe ID=" + to_string(id));
+        return;
+    }
+    for (int i = pos; i + 1 < (int)pipes.size(); i++)
+        pipes[i] = pipes[i + 1];
+    pipes.pop_back();
+    LogAction("Удален Pipe ID=" + to_string(id));
+    cout << "Удален ID=" << id << endl;
+}
+
+int Find_CS_By_ID(const vector<CS>& cs, int id)
+{
+    for (int i = 0; i < (int)cs.size(); i++)
+        if (cs[i].id == id)
+            return i;
+    return -1;
+}
+
+void Delete_CS(vector<CS>& cs, int id)
+{
+    int pos = Find_CS_By_ID(cs, id);
+    if (pos == -1)
+    {
+        cout << "Объект не найден." << endl;
+        LogAction("Не найден CS ID=" + to_string(id));
+        return;
+    }
+    for (int i = pos; i + 1 < (int)cs.size(); i++)
+        cs[i] = cs[i + 1];
+    cs.pop_back();
+    LogAction("Удален CS ID=" + to_string(id));
+    cout << "Удален ID=" << id << endl;
+}
+
+void Set_Repair(Pipe& p, bool state)
+{
+    if (p.repair == state)
+    {
+        if (p.repair)
+            cout << "Труба ID=" << p.id << " уже находится в ремонте." << endl;
+        else
+            cout << "Труба ID=" << p.id << " уже не находится в ремонте." << endl;
+        LogAction("Отказ изменения трубы ID=" + to_string(p.id)
+            + ": состояние ремонта уже равно " + to_string(state));
+        return;
+    }
+    LogAction("Труба ID=" + to_string(p.id) + ": ремонт "
+        + to_string(p.repair) + " -> " + to_string(state));
+    p.repair = state;
+    if (p.repair)
+        cout << "Труба ID=" << p.id << " отправлена в ремонт." << endl;
+    else
+        cout << "Труба ID=" << p.id << " выведена из ремонта." << endl;
+}
+
+void Edit_Pipe(Pipe& p)
+{
+    cout << "\nТекущее состояние трубы:" << endl;
+    Show_Pipe(p);
+    cout << "1. Отправить в ремонт\n2. Убрать из ремонта\n0. Назад\n";
+    switch (ReadRange("Действие с трубой: ", 0, 2))
+    {
+    case 1: Set_Repair(p, true); break;
+    case 2: Set_Repair(p, false); break;
+    case 0: return;
+    }
+}
+
+void Edit_CS(CS& k)
+{
+    cout << "\nТекущее состояние КС:" << endl;
+    Show_CS(k);
+    cout << "Остановленных цехов: " << k.workshops - k.workshops_work << endl;
+    cout << "1. Запустить один остановленный цех\n2. Остановить один работающий цех\n0. Назад\n";
+    switch (ReadRange("Действие с КС: ", 0, 2))
+    {
+    case 1:
+        if (k.workshops_work >= k.workshops)
+        {
+            cout << "Все цеха уже работают. Запуск невозможен." << endl;
+            LogAction("Отказ запуска цеха КС ID=" + to_string(k.id)
+                + ": все цеха уже работают");
+            return;
+        }
+        k.workshops_work++;
+        cout << "Один остановленный цех запущен." << endl;
+        LogAction("Запущен цех КС ID=" + to_string(k.id));
+        break;
+    case 2:
+        if (k.workshops_work <= 0)
+        {
+            cout << "Все цеха уже остановлены. Остановка невозможна." << endl;
+            LogAction("Отказ остановки цеха КС ID=" + to_string(k.id)
+                + ": работающих цехов нет");
+            return;
+        }
+        k.workshops_work--;
+        cout << "Один работающий цех остановлен." << endl;
+        LogAction("Остановлен цех КС ID=" + to_string(k.id));
+        break;
+    case 0: return;
+    }
+    cout << "Теперь работает цехов: " << k.workshops_work << endl;
+    cout << "Остановленных цехов: " << k.workshops - k.workshops_work << endl;
+    LogAction("КС ID=" + to_string(k.id) + ": работает цехов="
+        + to_string(k.workshops_work));
+}
+
 void Show_Menu(const vector<Pipe>& pipes, const vector<CS>& cs)
 {
     cout << "1. Трубы\n2. КС\n3. Все объекты\n0. Назад\n";
@@ -305,6 +427,71 @@ void Show_Menu(const vector<Pipe>& pipes, const vector<CS>& cs)
     case 1: Show_Pipes(pipes); break;
     case 2: Show_Stations(cs); break;
     case 3: Show_All(pipes, cs); break;
+    case 0: return;
+    }
+}
+
+void Work_Pipe(vector<Pipe>& pipes)
+{
+    while (true)
+    {
+        cout << "1. Найти по ID\n2. Редактировать по ID\n3. Удалить по ID\n0. Назад\n";
+        int cmd = ReadRange("Работа с Pipe: ", 0, 3);
+        switch (cmd)
+        {
+        case 0: return;
+        }
+        int id = ReadRange("ID: ", 1, INT_MAX);
+        int pos = Find_Pipe_By_ID(pipes, id);
+        if (pos == -1)
+        {
+            cout << "Объект не найден." << endl;
+            LogAction("Не найден Pipe ID=" + to_string(id));
+            continue;
+        }
+        switch (cmd)
+        {
+        case 1: Show_Pipe(pipes[pos]); break;
+        case 2: Edit_Pipe(pipes[pos]); break;
+        case 3: Delete_Pipe(pipes, id); break;
+        }
+    }
+}
+
+void Work_CS(vector<CS>& cs)
+{
+    while (true)
+    {
+        cout << "1. Найти по ID\n2. Редактировать по ID\n3. Удалить по ID\n0. Назад\n";
+        int cmd = ReadRange("Работа с CS: ", 0, 3);
+        switch (cmd)
+        {
+        case 0: return;
+        }
+        int id = ReadRange("ID: ", 1, INT_MAX);
+        int pos = Find_CS_By_ID(cs, id);
+        if (pos == -1)
+        {
+            cout << "Объект не найден." << endl;
+            LogAction("Не найден CS ID=" + to_string(id));
+            continue;
+        }
+        switch (cmd)
+        {
+        case 1: Show_CS(cs[pos]); break;
+        case 2: Edit_CS(cs[pos]); break;
+        case 3: Delete_CS(cs, id); break;
+        }
+    }
+}
+
+void Work_Menu(vector<Pipe>& pipes, vector<CS>& cs)
+{
+    cout << "1. Трубы\n2. КС\n0. Назад\n";
+    switch (ReadRange("Работа с объектами: ", 0, 2))
+    {
+    case 1: Work_Pipe(pipes); break;
+    case 2: Work_CS(cs); break;
     case 0: return;
     }
 }
@@ -329,6 +516,7 @@ int main()
         case 1: Add_Pipe(pipes, next); break;
         case 2: Add_CS(cs, next); break;
         case 3: Show_Menu(pipes, cs); break;
+        case 4: Work_Menu(pipes, cs); break;
         case 0:
             LogAction("Выход из программы");
             return 0;
