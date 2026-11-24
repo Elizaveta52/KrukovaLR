@@ -1,14 +1,13 @@
 #pragma once
 #include "Pipeline.h"
 #include "CS.h"
-#include <map>
-#include <set>
+#include <vector>
 
 class Application
 {
 private:
-    std::map<int, Pipeline> pipes;
-    std::map<int, CS> stations;
+    std::vector<Pipeline> pipes;
+    std::vector<CS> stations;
     static int nextId;
     bool HasPipes() const;
     bool HasCS() const;
@@ -19,7 +18,7 @@ private:
     void EditCS();
     void DeletePipe();
     void DeleteCS();
-    std::set<int> FindPipes() const;
+    std::vector<int> FindPipes() const;
     void FindCS() const;
     void BatchPipes();
     void Save() const;

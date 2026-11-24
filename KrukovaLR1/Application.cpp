@@ -7,17 +7,34 @@ using namespace std;
 
 int Application::nextId = 1;
 
+template <typename Object>
+int FindIndexByID(const vector<Object>& objects, int id)
+{
+    for (size_t i = 0; i < objects.size(); ++i)
+        if (objects[i].GetID() == id)
+            return static_cast<int>(i);
+    return -1;
+}
+
+bool ContainsID(const vector<int>& ids, int id)
+{
+    for (int current : ids)
+        if (current == id)
+            return true;
+    return false;
+}
+
 template <typename Object, typename Param>
 using Filter = bool (*)(const Object&, const Param&);
 
 template <typename Object, typename Param>
-set<int> FindByFilter(const map<int, Object>& objects,
+vector<int> FindByFilter(const vector<Object>& objects,
     Filter<Object, Param> filter, const Param& param)
 {
-    set<int> result;
-    for (const auto& item : objects)
-        if (filter(item.second, param))
-            result.insert(item.first);
+    vector<int> result;
+    for (const auto& object : objects)
+        if (filter(object, param))
+            result.push_back(object.GetID());
     return result;
 }
 
@@ -39,14 +56,18 @@ bool CSByPercent(const CS& station, const double& percent)
 }
 
 template <typename Object>
-void ShowObjects(const map<int, Object>& objects, const set<int>& ids)
+void ShowObjects(const vector<Object>& objects, const vector<int>& ids)
 {
     if (ids.empty())
         Message("Объекты не найдены.");
     for (int id : ids)
     {
-        cout << objects.at(id);
-        cerr << "Показан объект ID " << id << endl;
+        int index = FindIndexByID(objects, id);
+        if (index != -1)
+        {
+            cout << objects[index];
+            cerr << "Показан объект ID " << id << endl;
+        }
     }
 }
 
@@ -79,7 +100,7 @@ void Application::AddPipe()
     }
     Pipeline pipe(nextId);
     pipe.Input();
-    pipes.emplace(nextId, pipe);
+    pipes.push_back(pipe);
     Message("Добавлена труба ID " + to_string(nextId++));
 }
 
@@ -92,18 +113,18 @@ void Application::AddCS()
     }
     CS station(nextId);
     station.Input();
-    stations.emplace(nextId, station);
+    stations.push_back(station);
     Message("Добавлена КС ID " + to_string(nextId++));
 }
 
 void Application::ShowAll() const
 {
     if (HasPipes())
-        for (const auto& item : pipes)
-            cout << item.second;
+        for (const auto& pipe : pipes)
+            cout << pipe;
     if (HasCS())
-        for (const auto& item : stations)
-            cout << item.second;
+        for (const auto& station : stations)
+            cout << station;
     cerr << "Просмотр всех объектов: труб " << pipes.size()
         << ", КС " << stations.size() << endl;
 }
@@ -113,13 +134,13 @@ void Application::EditPipe()
     if (!HasPipes())
         return;
     int id = GetCorrectNumber("Введите ID трубы — целое положительное число: ", 1, numeric_limits<int>::max());
-    auto it = pipes.find(id);
-    if (it == pipes.end())
+    int index = FindIndexByID(pipes, id);
+    if (index == -1)
         Message("Труба с таким ID не найдена.");
     else
     {
         bool repair = GetCorrectNumber("Состояние трубы: 0 — в работе, 1 — в ремонте. Введите 0 или 1: ", 0, 1) == 1;
-        if (it->second.SetRepair(repair))
+        if (pipes[index].SetRepair(repair))
             Message("Изменена труба ID " + to_string(id));
     }
 }
@@ -129,12 +150,12 @@ void Application::EditCS()
     if (!HasCS())
         return;
     int id = GetCorrectNumber("Введите ID КС — целое положительное число: ", 1, numeric_limits<int>::max());
-    auto it = stations.find(id);
-    if (it == stations.end())
+    int index = FindIndexByID(stations, id);
+    if (index == -1)
         Message("КС с таким ID не найдена.");
     else
     {
-        if (it->second.Edit())
+        if (stations[index].Edit())
             Message("Изменена КС ID " + to_string(id));
     }
 }
@@ -144,10 +165,14 @@ void Application::DeletePipe()
     if (!HasPipes())
         return;
     int id = GetCorrectNumber("Введите ID трубы — целое положительное число: ", 1, numeric_limits<int>::max());
-    if (pipes.erase(id))
-        Message("Удалена труба ID " + to_string(id));
-    else
+    int index = FindIndexByID(pipes, id);
+    if (index == -1)
         Message("Труба с таким ID не найдена.");
+    else
+    {
+        pipes.erase(pipes.begin() + index);
+        Message("Удалена труба ID " + to_string(id));
+    }
 }
 
 void Application::DeleteCS()
@@ -155,18 +180,22 @@ void Application::DeleteCS()
     if (!HasCS())
         return;
     int id = GetCorrectNumber("Введите ID КС — целое положительное число: ", 1, numeric_limits<int>::max());
-    if (stations.erase(id))
-        Message("Удалена КС ID " + to_string(id));
-    else
+    int index = FindIndexByID(stations, id);
+    if (index == -1)
         Message("КС с таким ID не найдена.");
+    else
+    {
+        stations.erase(stations.begin() + index);
+        Message("Удалена КС ID " + to_string(id));
+    }
 }
 
-set<int> Application::FindPipes() const
+vector<int> Application::FindPipes() const
 {
     if (!HasPipes())
         return {};
     int filter = GetCorrectNumber("Фильтр труб: 1 — название, 2 — в ремонте: ", 1, 2);
-    set<int> found;
+    vector<int> found;
     if (filter == 1)
         found = FindByFilter(pipes, PipeByName, ReadName("Часть названия (с учётом регистра): "));
     else
@@ -183,7 +212,7 @@ void Application::FindCS() const
     if (!HasCS())
         return;
     int filter = GetCorrectNumber("Фильтр КС: 1 — название, 2 — процент незадействованных цехов: ", 1, 2);
-    set<int> found;
+    vector<int> found;
     if (filter == 1)
         found = FindByFilter(stations, CSByName, ReadName("Часть названия (с учётом регистра): "));
     else
@@ -194,12 +223,12 @@ void Application::FindCS() const
     ShowObjects(stations, found);
 }
 
-set<int> SelectPipes(const set<int>& found)
+vector<int> SelectPipes(const vector<int>& found)
 {
     int mode = GetCorrectNumber("1 — все найденные, 2 — выбрать ID, 0 — отмена: ", 0, 2);
     if (mode == 1)
         return found;
-    set<int> selected;
+    vector<int> selected;
     if (mode == 2)
     {
         Message("Вводите ID по одному. 0 — закончить выбор.");
@@ -208,8 +237,11 @@ set<int> SelectPipes(const set<int>& found)
             int id = GetCorrectNumber("Введите целое положительное ID из найденных или 0 для завершения выбора: ", 0, numeric_limits<int>::max());
             if (id == 0)
                 break;
-            if (found.count(id))
-                selected.insert(id);
+            if (ContainsID(found, id))
+            {
+                if (!ContainsID(selected, id))
+                    selected.push_back(id);
+            }
             else
                 Message("Такого ID нет среди найденных труб.");
         }
@@ -219,10 +251,10 @@ set<int> SelectPipes(const set<int>& found)
 
 void Application::BatchPipes()
 {
-    set<int> found = FindPipes();
+    vector<int> found = FindPipes();
     if (found.empty())
         return;
-    set<int> selected = SelectPipes(found);
+    vector<int> selected = SelectPipes(found);
     if (selected.empty())
     {
         Message("Трубы не выбраны. Изменений нет.");
@@ -236,14 +268,17 @@ void Application::BatchPipes()
         repair = GetCorrectNumber("Новое состояние труб: 0 — в работе, 1 — в ремонте. Введите 0 или 1: ", 0, 1) == 1;
     for (int id : selected)
     {
+        int index = FindIndexByID(pipes, id);
+        if (index == -1)
+            continue;
         if (action == 1)
         {
-            if (pipes.at(id).SetRepair(repair))
+            if (pipes[index].SetRepair(repair))
                 Message("Изменена труба ID " + to_string(id));
         }
         else
         {
-            pipes.erase(id);
+            pipes.erase(pipes.begin() + index);
             Message("Удалена труба ID " + to_string(id));
         }
     }
@@ -267,21 +302,21 @@ void Application::Save() const
         return;
     }
     out << "GAS_LAB_2\n" << nextId << '\n' << pipes.size() << '\n';
-    for (const auto& item : pipes)
-        item.second.Save(out);
+    for (const auto& pipe : pipes)
+        pipe.Save(out);
     out << stations.size() << '\n';
-    for (const auto& item : stations)
-        item.second.Save(out);
+    for (const auto& station : stations)
+        station.Save(out);
     out.close();
     Message(out ? "Данные сохранены: " + filename : "Ошибка записи файла.");
 }
 
-bool ReadObjects(istream& in, map<int, Pipeline>& pipes,
-    map<int, CS>& stations, int& savedNextId)
+bool ReadObjects(istream& in, vector<Pipeline>& pipes,
+    vector<CS>& stations, int& savedNextId)
 {
     string header;
     long long count;
-    set<int> ids;
+    vector<int> ids;
     if (!(in >> header >> savedNextId) || header != "GAS_LAB_2" || savedNextId < 1)
         return false;
     if (!(in >> count) || count < 0 || count >= savedNextId)
@@ -289,18 +324,20 @@ bool ReadObjects(istream& in, map<int, Pipeline>& pipes,
     for (long long i = 0; i < count; ++i)
     {
         Pipeline pipe;
-        if (!pipe.Load(in) || pipe.GetID() >= savedNextId || !ids.insert(pipe.GetID()).second)
+        if (!pipe.Load(in) || pipe.GetID() >= savedNextId || ContainsID(ids, pipe.GetID()))
             return false;
-        pipes.emplace(pipe.GetID(), pipe);
+        ids.push_back(pipe.GetID());
+        pipes.push_back(pipe);
     }
     if (!(in >> count) || count < 0 || count >= savedNextId)
         return false;
     for (long long i = 0; i < count; ++i)
     {
         CS station;
-        if (!station.Load(in) || station.GetID() >= savedNextId || !ids.insert(station.GetID()).second)
+        if (!station.Load(in) || station.GetID() >= savedNextId || ContainsID(ids, station.GetID()))
             return false;
-        stations.emplace(station.GetID(), station);
+        ids.push_back(station.GetID());
+        stations.push_back(station);
     }
     in >> ws;
     return in.eof();
@@ -315,8 +352,8 @@ void Application::Load()
         Message("Ошибка открытия файла для чтения.");
         return;
     }
-    map<int, Pipeline> loadedPipes;
-    map<int, CS> loadedStations;
+    vector<Pipeline> loadedPipes;
+    vector<CS> loadedStations;
     int savedNextId;
     if (!ReadObjects(in, loadedPipes, loadedStations, savedNextId))
     {
