@@ -10,6 +10,8 @@ private:
     std::map<int, Pipeline> pipes;
     std::map<int, CS> stations;
     static int nextId;
+    bool HasPipes() const;
+    bool HasCS() const;
     void AddPipe();
     void AddCS();
     void ShowAll() const;

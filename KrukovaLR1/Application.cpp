@@ -50,6 +50,26 @@ void ShowObjects(const map<int, Object>& objects, const set<int>& ids)
     }
 }
 
+bool Application::HasPipes() const
+{
+    if (pipes.empty())
+    {
+        Message("Трубы ещё не заданы.");
+        return false;
+    }
+    return true;
+}
+
+bool Application::HasCS() const
+{
+    if (stations.empty())
+    {
+        Message("КС ещё не заданы.");
+        return false;
+    }
+    return true;
+}
+
 void Application::AddPipe()
 {
     if (nextId == numeric_limits<int>::max())
@@ -78,18 +98,20 @@ void Application::AddCS()
 
 void Application::ShowAll() const
 {
-    if (pipes.empty() && stations.empty())
-        Message("Объектов пока нет.");
-    for (const auto& item : pipes)
-        cout << item.second;
-    for (const auto& item : stations)
-        cout << item.second;
+    if (HasPipes())
+        for (const auto& item : pipes)
+            cout << item.second;
+    if (HasCS())
+        for (const auto& item : stations)
+            cout << item.second;
     cerr << "Просмотр всех объектов: труб " << pipes.size()
         << ", КС " << stations.size() << endl;
 }
 
 void Application::EditPipe()
 {
+    if (!HasPipes())
+        return;
     int id = GetCorrectNumber("Введите ID трубы — целое положительное число: ", 1, numeric_limits<int>::max());
     auto it = pipes.find(id);
     if (it == pipes.end())
@@ -104,6 +126,8 @@ void Application::EditPipe()
 
 void Application::EditCS()
 {
+    if (!HasCS())
+        return;
     int id = GetCorrectNumber("Введите ID КС — целое положительное число: ", 1, numeric_limits<int>::max());
     auto it = stations.find(id);
     if (it == stations.end())
@@ -117,6 +141,8 @@ void Application::EditCS()
 
 void Application::DeletePipe()
 {
+    if (!HasPipes())
+        return;
     int id = GetCorrectNumber("Введите ID трубы — целое положительное число: ", 1, numeric_limits<int>::max());
     if (pipes.erase(id))
         Message("Удалена труба ID " + to_string(id));
@@ -126,6 +152,8 @@ void Application::DeletePipe()
 
 void Application::DeleteCS()
 {
+    if (!HasCS())
+        return;
     int id = GetCorrectNumber("Введите ID КС — целое положительное число: ", 1, numeric_limits<int>::max());
     if (stations.erase(id))
         Message("Удалена КС ID " + to_string(id));
@@ -135,6 +163,8 @@ void Application::DeleteCS()
 
 set<int> Application::FindPipes() const
 {
+    if (!HasPipes())
+        return {};
     int filter = GetCorrectNumber("Фильтр труб: 1 — название, 2 — в ремонте: ", 1, 2);
     set<int> found;
     if (filter == 1)
@@ -150,6 +180,8 @@ set<int> Application::FindPipes() const
 
 void Application::FindCS() const
 {
+    if (!HasCS())
+        return;
     int filter = GetCorrectNumber("Фильтр КС: 1 — название, 2 — процент незадействованных цехов: ", 1, 2);
     set<int> found;
     if (filter == 1)
@@ -219,6 +251,8 @@ void Application::BatchPipes()
 
 void Application::Save() const
 {
+    HasPipes();
+    HasCS();
     string filename = ReadName("Имя файла для сохранения: ");
     error_code error;
     if (filesystem::equivalent(filename, "log.txt", error))

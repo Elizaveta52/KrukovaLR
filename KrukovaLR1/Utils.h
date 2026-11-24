@@ -29,8 +29,6 @@ T GetCorrectNumber(const std::string& prompt, T min, T max)
         if ((input >> value) && (input >> std::ws).eof()
             && value >= min && value <= max)
             return value;
-        Message("Ошибка: неверный тип числа, лишние символы или выход за допустимый диапазон.");
-        std::cout << "Допустимый диапазон: от " << min << " до " << max << "." << std::endl;
-        std::cerr << "Допустимый диапазон: от " << min << " до " << max << "." << std::endl;
+        Message("Ошибка. Введите число согласно подсказке.");
     }
 }
