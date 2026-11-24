@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Исходные файлы">
@@ -15,8 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="KrukovaLR1.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
+    <ClCompile Include="Utils.cpp"><Filter>Исходные файлы</Filter></ClCompile>
+    <ClCompile Include="Pipeline.cpp"><Filter>Исходные файлы</Filter></ClCompile>
+    <ClCompile Include="CS.cpp"><Filter>Исходные файлы</Filter></ClCompile>
+    <ClCompile Include="Application.cpp"><Filter>Исходные файлы</Filter></ClCompile>
+    <ClCompile Include="KrukovaLR1.cpp"><Filter>Исходные файлы</Filter></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Utils.h"><Filter>Файлы заголовков</Filter></ClInclude>
+    <ClInclude Include="Pipeline.h"><Filter>Файлы заголовков</Filter></ClInclude>
+    <ClInclude Include="CS.h"><Filter>Файлы заголовков</Filter></ClInclude>
+    <ClInclude Include="Application.h"><Filter>Файлы заголовков</Filter></ClInclude>
   </ItemGroup>
 </Project>
